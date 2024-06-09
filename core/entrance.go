@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"github.com/lhdhtrc/kafka-go/model"
@@ -58,4 +59,26 @@ func New(config model.ConfigEntity) (*KafkaCoreEntity, error) {
 	}
 
 	return core, nil
+}
+
+func (s *KafkaCoreEntity) CreateTopics(topics []string) error {
+	var topicConfig []kafka.TopicConfig
+	for _, topic := range topics {
+		topicConfig = append(topicConfig, kafka.TopicConfig{
+			Topic:             topic,
+			NumPartitions:     1,
+			ReplicationFactor: len(s.addr),
+		})
+
+		s.WriterMap[topic] = &kafka.Writer{
+			Addr:      s.Cli.Addr,
+			Topic:     topic,
+			Balancer:  &kafka.LeastBytes{},
+			Transport: s.Cli.Transport,
+		}
+	}
+	if _, err := s.Cli.CreateTopics(context.Background(), &kafka.CreateTopicsRequest{Addr: s.Cli.Addr, Topics: topicConfig}); err != nil {
+		return err
+	}
+	return nil
 }
