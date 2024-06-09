@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"github.com/lhdhtrc/kafka-go/model"
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl/plain"
@@ -81,4 +82,14 @@ func (s *KafkaCoreEntity) CreateTopics(topics []string) error {
 		return err
 	}
 	return nil
+}
+
+func (s *KafkaCoreEntity) Production(topic string, message []kafka.Message) error {
+	v, ok := s.WriterMap[topic]
+	if !ok {
+		return errors.New("topic writer not found")
+	}
+
+	err := v.WriteMessages(context.Background(), message...)
+	return err
 }
