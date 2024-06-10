@@ -16,8 +16,9 @@ import (
 type KafkaCoreEntity struct {
 	tcp  net.Addr
 	addr []string
-	Cli  *kafka.Client
 
+	Cli         *kafka.Client
+	Conn        *kafka.Dialer
 	WriterMap   map[string]*kafka.Writer
 	ConsumerMap map[string]*kafka.ConsumerGroup
 }
@@ -53,10 +54,16 @@ func New(config model.ConfigEntity) (*KafkaCoreEntity, error) {
 		}
 	}
 
+	timeout := 10 * time.Second
 	core.Cli = &kafka.Client{
+		Timeout:   timeout,
 		Addr:      core.tcp,
-		Timeout:   10 * time.Second,
 		Transport: &transport,
+	}
+	core.Conn = &kafka.Dialer{
+		Timeout:       timeout,
+		TLS:           transport.TLS,
+		SASLMechanism: transport.SASL,
 	}
 
 	return core, nil
