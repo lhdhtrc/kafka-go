@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
-	"fmt"
 	"github.com/lhdhtrc/kafka-go/model"
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl/plain"
@@ -111,12 +110,7 @@ func (s *KafkaCoreEntity) Consumption(topic string, handle func(read *kafka.Read
 		Topic:     topic,
 		Partition: 0,
 	})
-	defer func(r *kafka.Reader) {
-		err := r.Close()
-		if err != nil {
-			fmt.Println(err)
-		}
-	}(r)
+	defer func(r *kafka.Reader) { _ = r.Close() }(r)
 
 	for {
 		m, err := r.FetchMessage(ctx)
