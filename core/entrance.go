@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
+	"fmt"
 	"github.com/lhdhtrc/kafka-go/model"
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl/plain"
@@ -99,4 +100,29 @@ func (s *KafkaCoreEntity) Production(topic string, message []kafka.Message) erro
 
 	err := v.WriteMessages(context.Background(), message...)
 	return err
+}
+
+func (s *KafkaCoreEntity) Consumption(topic string, handle func(read *kafka.Reader, message kafka.Message)) {
+	ctx := context.Background()
+	r := kafka.NewReader(kafka.ReaderConfig{
+		GroupID:   "LhdhtMicroservice",
+		Dialer:    s.Conn,
+		Brokers:   s.addr,
+		Topic:     topic,
+		Partition: 0,
+	})
+	defer func(r *kafka.Reader) {
+		err := r.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(r)
+
+	for {
+		m, err := r.FetchMessage(ctx)
+		if err != nil {
+			break
+		}
+		handle(r, m)
+	}
 }
