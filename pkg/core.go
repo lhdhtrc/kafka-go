@@ -7,12 +7,17 @@ import (
 )
 
 func New(logger *zap.Logger, config *ConfigEntity) (*CoreEntity, error) {
-	core := &CoreEntity{
-		tcp:  kafka.TCP(config.Address...),
-		addr: config.Address,
+	ctx, cancel := context.WithCancel(context.Background())
 
-		WriterMap:   make(map[string]*kafka.Writer),
-		ConsumerMap: make(map[string]*kafka.ConsumerGroup),
+	core := &CoreEntity{
+		ctx:    ctx,
+		cancel: cancel,
+
+		tcp:      kafka.TCP(config.Address...),
+		addr:     config.Address,
+		maxRetry: config.MaxRetry,
+
+		writerMap: make(map[string]*kafka.Writer),
 
 		logger: logger,
 	}
