@@ -17,7 +17,7 @@ func main() {
 	instance := kafka.New(logger, kafka.ConfigEntity{})
 
 	// How to create a theme?
-	instance.CreateTopics([]string{"emails"})
+	instance.InitTopic([]string{"emails"})
 	
 	// How to send a message?
 	instance.Production("emails", []kafka.Message{
@@ -26,13 +26,17 @@ func main() {
 	})
 	
 	// How to consume messages?
-	instance.Consumption("emails", func(read *kafka.Reader, message kafka.Message) {
-		if string(message.Key) == "admin@lhdht.cn" {
-			if err := read.CommitMessages(context.Background(), message); err != nil {
-				fmt.Println(err)
+	instance.Consumption(kafka.ConsumptionEntity{
+		Topic: "emails",
+		Handle: func(read *kafka.Reader, message kafka.Message) {
+			if string(message.Key) == "admin@lhdht.cn" {
+				if err := read.CommitMessages(context.Background(), message); err != nil {
+					fmt.Println(err)
+				}
 			}
-		}
-	})
+		},
+		GroupId: "LhdhtKafka",
+    })
 }
 ```
 
