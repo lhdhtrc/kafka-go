@@ -55,3 +55,13 @@ func (core *CoreEntity) install(config *ConfigEntity) *CoreEntity {
 
 	return core
 }
+
+func (core *CoreEntity) retryConsumption(config *ConsumptionEntity) {
+	if core.countRetry < core.maxRetry {
+		time.Sleep(5 * time.Second)
+
+		core.countRetry++
+		core.logger.Info(fmt.Sprintf("etcd retry lease: %d/%d", core.countRetry, core.maxRetry))
+		core.Consumption(config)
+	}
+}
