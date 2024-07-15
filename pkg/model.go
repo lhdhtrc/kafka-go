@@ -35,3 +35,9 @@ type CoreEntity struct {
 	conn      *kafka.Dialer
 	writerMap map[string]*kafka.Writer
 }
+
+type ConsumptionEntity struct {
+	Topic   string
+	Handle  func(read *kafka.Reader, message kafka.Message)
+	GroupId string
+}
