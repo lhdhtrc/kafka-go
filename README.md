@@ -1,50 +1,41 @@
 ## Kafka Go
 Provides easy to use API to operate Kafka.
 
-### Init Kafka
+### How to use it?
+`go get github.com/lhdhtrc/etcd-go`
+
 ```go
-c, e := core.New(model.ConfigEntity{
-    Tls: model.TLSEntity{
-        CaCert:        "./certs/ca.crt",
-        ClientCert:    "./certs/client.crt",
-        ClientCertKey: "./certs/client.key",
-    },
-    Account:  "lhdht",
-    Password: "123456",
-    Address:  []string{"127.0.0.1:10105"},
-})
-if e != nil {
-    fmt.Println(e)
-    return
+package main
+
+import (
+	kafka "github.com/lhdhtrc/kafka-go/pkg"
+	"go.uber.org/zap"
+)
+
+func main() {
+	logger, _ := zap.NewProduction()
+	instance := kafka.New(logger, kafka.ConfigEntity{})
+
+	// How to create a theme?
+	instance.CreateTopics([]string{"emails"})
+	
+	// How to send a message?
+	instance.Production("emails", []kafka.Message{
+		{Key: []byte("admin@163.com"), Value: []byte("fadfdc")},
+		{Key: []byte("admin@lhdht.cn"), Value: []byte("112.11")},
+	})
+	
+	// How to consume messages?
+	instance.Consumption("emails", func(read *kafka.Reader, message kafka.Message) {
+		if string(message.Key) == "admin@lhdht.cn" {
+			if err := read.CommitMessages(context.Background(), message); err != nil {
+				fmt.Println(err)
+			}
+		}
+	})
 }
 ```
 
-### Create Topic
-```go
-c.CreateTopics([]string{"emails"})
-```
-
-### Production Message
-```go
-err := c.Production("emails", []kafka.Message{
-    {Key: []byte("admin@163.com"), Value: []byte("fadfdc")},
-    {Key: []byte("admin@lhdht.cn"), Value: []byte("112.11")},
-})
-if err != nil {
-    fmt.Println(err)
-    return
-}
-```
-
-### Consumption Message
-```go
-c.Consumption("emails", func(read *kafka.Reader, message kafka.Message) {
-    fmt.Println(string(message.Key))
-
-    if string(message.Key) == "admin@lhdht.cn" {
-        if err := read.CommitMessages(context.Background(), message); err != nil {
-            fmt.Println(err)
-        }
-    }
-})
-```
+### Finally
+- If you feel good, click on star.
+- If you have a good suggestion, please ask the issue.
