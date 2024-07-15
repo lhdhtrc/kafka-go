@@ -22,7 +22,7 @@ func New(logger *zap.Logger, config *ConfigEntity) (*CoreEntity, error) {
 	return core, nil
 }
 
-func (core *CoreEntity) CreateTopics(topics []string) {
+func (core *CoreEntity) InitTopics(topics []string) {
 	var topicConfig []kafka.TopicConfig
 	for _, topic := range topics {
 		topicConfig = append(topicConfig, kafka.TopicConfig{
@@ -31,14 +31,14 @@ func (core *CoreEntity) CreateTopics(topics []string) {
 			ReplicationFactor: len(core.addr),
 		})
 
-		core.WriterMap[topic] = &kafka.Writer{
-			Addr:      core.Cli.Addr,
+		core.writerMap[topic] = &kafka.Writer{
+			Addr:      core.cli.Addr,
 			Topic:     topic,
 			Balancer:  &kafka.LeastBytes{},
-			Transport: core.Cli.Transport,
+			Transport: core.cli.Transport,
 		}
 	}
-	if _, err := core.Cli.CreateTopics(context.Background(), &kafka.CreateTopicsRequest{Addr: core.Cli.Addr, Topics: topicConfig}); err != nil {
+	if _, err := core.cli.CreateTopics(context.Background(), &kafka.CreateTopicsRequest{Addr: core.cli.Addr, Topics: topicConfig}); err != nil {
 		core.logger.Error(err.Error())
 	}
 }
