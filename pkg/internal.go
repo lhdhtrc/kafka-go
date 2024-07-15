@@ -40,12 +40,12 @@ func (core *CoreEntity) install(config *ConfigEntity) *CoreEntity {
 	}
 
 	timeout := 10 * time.Second
-	core.Cli = &kafka.Client{
+	core.cli = &kafka.Client{
 		Timeout:   timeout,
 		Addr:      core.tcp,
 		Transport: &transport,
 	}
-	core.Conn = &kafka.Dialer{
+	core.conn = &kafka.Dialer{
 		Timeout:       timeout,
 		TLS:           transport.TLS,
 		SASLMechanism: transport.SASL,
