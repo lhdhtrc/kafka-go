@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"context"
 	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
 	"net"
@@ -17,15 +18,20 @@ type ConfigEntity struct {
 	Account  string    `json:"account" bson:"account" yaml:"account" mapstructure:"account"`
 	Password string    `json:"password" bson:"password" yaml:"password" mapstructure:"password"`
 	Address  []string  `json:"address" yaml:"address" mapstructure:"address"`
+	MaxRetry uint      `json:"max_retry" yaml:"max_retry" mapstructure:"max_retry"`
 }
 
 type CoreEntity struct {
-	tcp    net.Addr
-	addr   []string
-	logger *zap.Logger
+	ctx    context.Context
+	cancel context.CancelFunc
 
-	Cli         *kafka.Client
-	Conn        *kafka.Dialer
-	WriterMap   map[string]*kafka.Writer
-	ConsumerMap map[string]*kafka.ConsumerGroup
+	tcp        net.Addr
+	addr       []string
+	logger     *zap.Logger
+	maxRetry   uint
+	countRetry uint
+
+	cli       *kafka.Client
+	conn      *kafka.Dialer
+	writerMap map[string]*kafka.Writer
 }
