@@ -49,7 +49,7 @@ func (core *CoreEntity) InitTopics(topics []string) {
 }
 
 func (core *CoreEntity) Production(topic string, message []kafka.Message) {
-	v, ok := core.WriterMap[topic]
+	v, ok := core.writerMap[topic]
 	if !ok {
 		core.logger.Error("topic writer not found")
 		return
