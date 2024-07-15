@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+	"fmt"
 	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
 )
@@ -58,25 +59,32 @@ func (core *CoreEntity) Production(topic string, message []kafka.Message) {
 	err := v.WriteMessages(context.Background(), message...)
 	if err != nil {
 		core.logger.Error(err.Error())
-		return
 	}
 }
 
-func (core *CoreEntity) Consumption(topic string, handle func(read *kafka.Reader, message kafka.Message)) {
+func (core *CoreEntity) Consumption(config *ConsumptionEntity) {
 	r := kafka.NewReader(kafka.ReaderConfig{
-		GroupID:   "LhdhtKafka",
-		Dialer:    core.Conn,
-		Brokers:   core.addr,
-		Topic:     topic,
-		Partition: 0,
+		Dialer:  core.conn,
+		Brokers: core.addr,
+		GroupID: config.GroupId,
+		Topic:   config.Topic,
 	})
 	defer func(r *kafka.Reader) { _ = r.Close() }(r)
 
 	for {
-		m, err := r.FetchMessage(context.Background())
+		m, err := r.FetchMessage(core.ctx)
 		if err != nil {
+			core.retryConsumption(config)
+			core.logger.Error(err.Error())
 			break
 		}
-		handle(r, m)
+		config.Handle(r, m)
+		core.countRetry = 0
 	}
+}
+
+func (core *CoreEntity) Uninstall() {
+	core.cancel()
+
+	fmt.Println("uninstall kafka success")
 }
