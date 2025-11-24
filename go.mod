@@ -4,7 +4,7 @@ go 1.22.1
 
 require (
 	github.com/segmentio/kafka-go v0.4.47
-	go.uber.org/zap v1.27.0
+	go.uber.org/zap v1.27.1
 )
 
 require (
